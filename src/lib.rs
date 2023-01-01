@@ -69,9 +69,9 @@ where
         return;
     }
     let q = partition(v, v.len() / 2);
-    let (left, right) = v.split_at_mut(q);
-    quicksort(left);
-    quicksort(&mut right[1..]);
+    let (v_left, v_right) = v.split_at_mut(q);
+    quicksort(v_left);
+    quicksort(&mut v_right[1..]);
 }
 
 pub fn reverse<T>(v: &mut [T]) {
