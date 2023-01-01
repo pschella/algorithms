@@ -53,9 +53,23 @@ where
     quicksort(&mut right[1..]);
 }
 
+pub fn reverse<T>(v: &mut [T]) {
+    let n = v.len();
+    if n <= 1 {
+        return;
+    }
+    let mut i = 0;
+    let mut j = n - 1;
+    while i != j {
+        v.swap(i, j);
+        i += 1;
+        j -= 1;
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{nth_elment, partition, quicksort};
+    use crate::{nth_elment, partition, quicksort, reverse};
     #[test]
     fn test_partition() {
         let mut v: Vec<i32> = vec![42, 76, 6, 33, 55, 97, 93, 30, 20, 56, 14, 39, 69, 30, 11];
@@ -92,6 +106,18 @@ mod tests {
             let rhs = v[i];
             assert!(lhs <= rhs);
             lhs = rhs;
+        }
+    }
+
+    #[test]
+    fn test_reverse() {
+        let mut v: Vec<i32> = vec![42, 76, 6, 33, 55, 97, 93, 30, 20, 56, 14, 39, 69, 30, 11];
+        let tmp: Vec<i32> = v.clone();
+        reverse(&mut v);
+        let n = v.len();
+        for i in 0..n {
+            let j = (n - 1) - i;
+            assert!(v[i] == tmp[j]);
         }
     }
 }
