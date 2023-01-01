@@ -1,7 +1,4 @@
-#[derive(Debug)]
-pub enum AlgorithmError {
-    InvalidArgument,
-}
+use std::fmt::Debug;
 
 pub fn partition<T>(v: &mut [T], k: usize) -> usize
 where
@@ -18,6 +15,25 @@ where
     }
     v.swap(j, last);
     j
+}
+
+pub fn stable_partition<T>(v: &mut [T], pred: fn(&T) -> bool) -> Result<usize, String>
+where
+    T: PartialOrd + Copy + Debug,
+{
+    let n = v.len();
+    if n == 0 {
+        return Ok(0);
+    }
+    if n == 1 {
+        return Ok(if pred(&v[0]) { 1 } else { 0 });
+    }
+    let m = n / 2;
+    let (v_left, v_right) = v.split_at_mut(m);
+    let b = stable_partition(v_left, pred)?;
+    let e = m + stable_partition(v_right, pred)?;
+    let q = rotate(&mut v[b..e], m-b)?;
+    Ok(b + q)
 }
 
 pub fn nth_elment<T>(v: &mut [T], k: usize) -> Option<T>
@@ -59,8 +75,12 @@ where
 }
 
 pub fn reverse<T>(v: &mut [T]) {
+    let n = v.len();
+    if n <= 1 {
+        return;
+    }
     let mut i = 0;
-    let mut j = v.len() - 1;
+    let mut j = n - 1;
     while i < j {
         v.swap(i, j);
         i += 1;
@@ -68,10 +88,10 @@ pub fn reverse<T>(v: &mut [T]) {
     }
 }
 
-pub fn rotate<T>(v: &mut [T], l: usize) -> Result<usize, AlgorithmError> {
+pub fn rotate<T>(v: &mut [T], l: usize) -> Result<usize, String> {
     let n = v.len();
-    if l >= n {
-        return Err(AlgorithmError::InvalidArgument);
+    if l > n {
+        return Err(format!("{} > {}", l, n));
     }
     reverse(&mut v[..l]);
     reverse(&mut v[l..]);
@@ -81,7 +101,7 @@ pub fn rotate<T>(v: &mut [T], l: usize) -> Result<usize, AlgorithmError> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{nth_elment, partition, quicksort, reverse, rotate};
+    use crate::{nth_elment, partition, quicksort, reverse, rotate, stable_partition};
     #[test]
     fn test_partition() {
         let mut v: Vec<i32> = vec![42, 76, 6, 33, 55, 97, 93, 30, 20, 56, 14, 39, 69, 30, 11];
@@ -143,6 +163,57 @@ mod tests {
 
         for i in 0..v.len() {
             assert!(v[i] == expected[i]);
+        }
+    }
+
+    #[derive(Copy, Clone, Debug)]
+    struct Pair(i32, i32);
+
+    use std::cmp::Ordering;
+
+    impl PartialEq for Pair {
+        fn eq(&self, other: &Self) -> bool {
+            self.0 == other.0
+        }
+    }
+
+    impl PartialOrd for Pair {
+        fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+            Some(self.0.cmp(&other.0))
+        }
+    }
+
+    impl Eq for Pair {}
+
+    impl Ord for Pair {
+        fn cmp(&self, other: &Self) -> Ordering {
+            self.0.cmp(&other.0)
+        }
+    }
+
+    #[test]
+    fn test_stable_partition() {
+        let mut v: Vec<Pair> = vec![
+            Pair(25, 0),
+            Pair(2, 1),
+            Pair(48, 2),
+            Pair(10, 3),
+            Pair(83, 4),
+            Pair(29, 5),
+            Pair(46, 6),
+            Pair(48, 7),
+            Pair(81, 8),
+            Pair(38, 9),
+        ];
+
+        let q = stable_partition(&mut v, |&item| item.0 < 47).unwrap();
+
+        assert!(q == 6);
+        for i in 0..q {
+            assert!(v[i] <= v[q]);
+        }
+        for i in q..(v.len()) {
+            assert!(v[i] >= v[q]);
         }
     }
 }
