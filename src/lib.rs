@@ -40,9 +40,22 @@ where
     }
 }
 
+pub fn quicksort<T>(v: &mut [T])
+where
+    T: PartialOrd + Copy,
+{
+    if v.len() == 0 {
+        return;
+    }
+    let q = partition(v, v.len() / 2);
+    let (left, right) = v.split_at_mut(q);
+    quicksort(left);
+    quicksort(&mut right[1..]);
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{nth_elment, partition};
+    use crate::{nth_elment, partition, quicksort};
     #[test]
     fn test_partition() {
         let mut v: Vec<i32> = vec![42, 76, 6, 33, 55, 97, 93, 30, 20, 56, 14, 39, 69, 30, 11];
@@ -67,6 +80,18 @@ mod tests {
         }
         for i in k..(v.len()) {
             assert!(v[i] >= v[k]);
+        }
+    }
+
+    #[test]
+    fn test_quicksort() {
+        let mut v: Vec<i32> = vec![42, 76, 6, 33, 55, 97, 93, 30, 20, 56, 14, 39, 69, 30, 11];
+        quicksort(&mut v);
+        let mut lhs = v[0];
+        for i in 1..v.len() {
+            let rhs = v[i];
+            assert!(lhs <= rhs);
+            lhs = rhs;
         }
     }
 }
