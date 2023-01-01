@@ -1,3 +1,8 @@
+#[derive(Debug)]
+pub enum AlgorithmError {
+    InvalidArgument,
+}
+
 pub fn partition<T>(v: &mut [T], k: usize) -> usize
 where
     T: PartialOrd + Copy,
@@ -54,22 +59,29 @@ where
 }
 
 pub fn reverse<T>(v: &mut [T]) {
-    let n = v.len();
-    if n <= 1 {
-        return;
-    }
     let mut i = 0;
-    let mut j = n - 1;
-    while i != j {
+    let mut j = v.len() - 1;
+    while i < j {
         v.swap(i, j);
         i += 1;
         j -= 1;
     }
 }
 
+pub fn rotate<T>(v: &mut [T], l: usize) -> Result<usize, AlgorithmError> {
+    let n = v.len();
+    if l >= n {
+        return Err(AlgorithmError::InvalidArgument);
+    }
+    reverse(&mut v[..l]);
+    reverse(&mut v[l..]);
+    reverse(v);
+    Ok(n - l)
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{nth_elment, partition, quicksort, reverse};
+    use crate::{nth_elment, partition, quicksort, reverse, rotate};
     #[test]
     fn test_partition() {
         let mut v: Vec<i32> = vec![42, 76, 6, 33, 55, 97, 93, 30, 20, 56, 14, 39, 69, 30, 11];
@@ -118,6 +130,19 @@ mod tests {
         for i in 0..n {
             let j = (n - 1) - i;
             assert!(v[i] == tmp[j]);
+        }
+    }
+
+    #[test]
+    fn test_rotate() {
+        let mut v: Vec<i32> = vec![42, 76, 6, 33, 55, 97, 93, 30, 20, 56, 14, 39, 69, 30, 11];
+        let expected: Vec<i32> = vec![30, 20, 56, 14, 39, 69, 30, 11, 42, 76, 6, 33, 55, 97, 93];
+
+        let q = rotate(&mut v, 7).expect("something went wrong");
+        assert!(q == 8);
+
+        for i in 0..v.len() {
+            assert!(v[i] == expected[i]);
         }
     }
 }
