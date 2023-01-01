@@ -209,11 +209,19 @@ mod tests {
         let q = stable_partition(&mut v, |&item| item.0 < 47).unwrap();
 
         assert!(q == 6);
+        // check ordering
         for i in 0..q {
-            assert!(v[i] <= v[q]);
+            assert!(v[i].0 <= v[q].0);
         }
         for i in q..(v.len()) {
-            assert!(v[i] >= v[q]);
+            assert!(v[i].0 >= v[q].0);
+        }
+        // check stability (each sub-group should be strictly increasing in the second element of the pair)
+        for i in 1..q {
+            assert!(v[i-1].1 <= v[i].1);
+        }
+        for i in (q+1)..(v.len()) {
+            assert!(v[i-1].1 <= v[i].1);
         }
     }
 }
