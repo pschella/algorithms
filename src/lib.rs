@@ -99,9 +99,95 @@ pub fn rotate<T>(v: &mut [T], l: usize) -> Result<usize, String> {
     Ok(n - l)
 }
 
+fn parent(i: usize) -> usize {
+    (i - 1) / 2
+}
+
+fn left(i: usize) -> usize {
+    2 * i + 1
+}
+
+fn right(i: usize) -> usize {
+    2 * i + 2
+}
+
+fn heapify<T>(v: &mut [T], i: usize)
+where
+    T: PartialOrd + Copy,
+{
+    let l = left(i);
+    let r = right(i);
+    let n = v.len();
+    let mut smallest = i;
+    if l < n && v[l] < v[i] {
+        smallest = l;
+    }
+    if r < n && v[r] < v[smallest] {
+        smallest = r;
+    }
+    if smallest != i {
+        v.swap(i, smallest);
+        heapify(v, smallest);
+    }
+}
+
+pub fn make_heap<T>(v: &mut [T])
+where
+    T: PartialOrd + Copy,
+{
+    let n = v.len() / 2;
+    for i in (0..n).rev() {
+       heapify(v, i); 
+    }
+}
+
+pub fn is_heap<T>(v: &[T]) -> bool
+where
+    T: PartialOrd
+{
+    let n = v.len();
+    for i in 0..n {
+        let l = left(i);
+        let r = right(i);
+        if l < n && v[l] < v[i] {
+            return false;
+        }
+        if r < n && v[r] < v[i] {
+            return false;
+        }
+    }
+    true
+}
+
+pub fn pop_heap<T>(v: &mut [T])
+where
+    T: PartialOrd + Copy
+{
+    let n = v.len();
+    if n < 2 {
+        return;
+    }
+    v.swap(0, n-1);
+    heapify(&mut v[0..n-1], 0);
+}
+
+pub fn heapsort<T>(v: &mut [T])
+where
+    T: PartialOrd + Copy
+{
+    let n = v.len();
+    let mut tmp = v.to_vec();
+    make_heap(&mut tmp);
+    for i in 0..n {
+        pop_heap(&mut tmp[0..n-i]);
+        v[i] = tmp[n-i-1];
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{nth_elment, partition, quicksort, reverse, rotate, stable_partition};
+    use super::*;
+
     #[test]
     fn test_partition() {
         let mut v: Vec<i32> = vec![42, 76, 6, 33, 55, 97, 93, 30, 20, 56, 14, 39, 69, 30, 11];
@@ -222,6 +308,35 @@ mod tests {
         }
         for i in (q+1)..(v.len()) {
             assert!(v[i-1].1 <= v[i].1);
+        }
+    }
+
+    #[test]
+    fn test_heapify() {
+        let mut v: Vec<u8> = vec![3, 4, 1];
+        heapify(&mut v, 0);
+        assert!(v[0] == 1);
+        assert!(v[1] == 4);
+        assert!(v[2] == 3);
+    }
+
+    #[test]
+    fn test_make_heap() {
+        let mut v: Vec<u8> = vec![10, 1, 3, 7, 3, 5, 19, 27, 2, 0, 19, 11];
+        assert!(!is_heap(&v));
+        make_heap(&mut v);
+        assert!(is_heap(&v));
+    }
+
+    #[test]
+    fn test_heapsort() {
+        let mut v: Vec<i32> = vec![42, 76, 6, 33, 55, 97, 93, 30, 20, 56, 14, 39, 69, 30, 11];
+        heapsort(&mut v);
+        let mut lhs = v[0];
+        for i in 1..v.len() {
+            let rhs = v[i];
+            assert!(lhs <= rhs);
+            lhs = rhs;
         }
     }
 }
