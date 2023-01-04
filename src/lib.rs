@@ -171,6 +171,21 @@ where
     heapify(&mut v[0..n-1], 0);
 }
 
+pub fn push_heap<T>(v: &mut [T])
+where
+    T: PartialOrd + Copy
+{
+    let mut i = v.len() - 1;
+    let mut p = parent(i);
+    while p != 0 {
+        if v[i] < v[p] {
+            v.swap(i, p);
+        }
+        i -= 1;
+        p = parent(i);
+    }
+}
+
 pub fn heapsort<T>(v: &mut [T])
 where
     T: PartialOrd + Copy
@@ -325,6 +340,29 @@ mod tests {
         let mut v: Vec<u8> = vec![10, 1, 3, 7, 3, 5, 19, 27, 2, 0, 19, 11];
         assert!(!is_heap(&v));
         make_heap(&mut v);
+        assert!(is_heap(&v));
+    }
+
+    #[test]
+    fn test_pop_heap() {
+        let mut v: Vec<u8> = vec![10, 1, 3, 7, 3, 5, 19, 27, 2, 0, 19, 11];
+        assert!(!is_heap(&v));
+        make_heap(&mut v);
+        assert!(is_heap(&v));
+        pop_heap(&mut v);
+        assert!(v.pop().unwrap() == 0);
+        assert!(is_heap(&v));
+    }
+
+    #[test]
+    fn test_push_heap() {
+        let mut v: Vec<u8> = vec![10, 1, 3, 7, 3, 5, 19, 27, 2, 0, 19, 11];
+        assert!(!is_heap(&v));
+        make_heap(&mut v);
+        assert!(is_heap(&v));
+        v.push(4);
+        assert!(!is_heap(&v));
+        push_heap(&mut v);
         assert!(is_heap(&v));
     }
 
