@@ -75,6 +75,42 @@ where
     quicksort(&mut v_right[1..]);
 }
 
+fn merge_sort<T>(v: &mut [T], buffer: &mut Vec<T>)
+where
+    T: PartialOrd + Copy + Debug,
+{
+    let n = v.len();
+    if n == 0 || n == 1 {
+        return;
+    }
+    let (v_left, v_right) = v.split_at_mut(n / 2);
+    merge_sort(v_left, buffer);
+    merge_sort(v_right, buffer);
+
+    // merge
+    buffer.clear();
+    let mut i: usize = 0;
+    let mut j: usize = 0;
+    while i < v_left.len() && j < v_right.len() {
+        if v_left[i] <= v_right[j] {
+            buffer.push(v_left[i]);
+            i += 1;
+        } else {
+            buffer.push(v_right[j]);
+            j += 1;
+        }
+    }
+    while i < v_left.len() {
+        buffer.push(v_left[i]);
+        i += 1;
+    }
+    while j < v_right.len() {
+        buffer.push(v_right[j]);
+        j += 1;
+    }
+    v.copy_from_slice(&buffer[..]);
+}
+
 pub fn stable_sort<T>(v: &mut [T])
 where
     T: PartialOrd + Copy + Debug,
@@ -84,33 +120,7 @@ where
         return;
     }
     let mut buffer = Vec::<T>::with_capacity(n);
-    {
-        let (v_left, v_right) = v.split_at_mut(n / 2);
-        stable_sort(v_left);
-        stable_sort(v_right);
-
-        // merge
-        let mut i = 0;
-        let mut j = 0;
-        while i < v_left.len() && j < v_right.len() {
-            if v_left[i] <= v_right[j] {
-                buffer.push(v_left[i]);
-                i += 1;
-            } else {
-                buffer.push(v_right[j]);
-                j += 1;
-            }
-        }
-        while i < v_left.len() {
-            buffer.push(v_left[i]);
-            i += 1;
-        }
-        while j < v_right.len() {
-            buffer.push(v_right[j]);
-            j += 1;
-        }
-    }  // end of mutable borrow from v
-    v.copy_from_slice(&buffer[..]);    
+    merge_sort(v, &mut buffer);
 }
 
 pub fn reverse<T>(v: &mut [T]) {
