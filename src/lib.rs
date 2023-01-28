@@ -75,12 +75,30 @@ where
     quicksort(&mut v_right[1..]);
 }
 
+fn insertion_sort<T>(v: &mut [T])
+where
+    T: PartialOrd + Copy
+{
+    let n = v.len();
+    for i in 0..n {
+        let mut j = i;
+        while j > 0 && v[j-1] > v[j] {
+            v.swap(j-1, j);
+            j -= 1;
+        }
+    }
+}
+
 fn merge_sort<T>(v: &mut [T], buffer: &mut Vec<T>)
 where
     T: PartialOrd + Copy + Debug,
 {
     let n = v.len();
     if n == 0 || n == 1 {
+        return;
+    }
+    if n < 15 {
+        insertion_sort(v);
         return;
     }
     let (v_left, v_right) = v.split_at_mut(n / 2);
