@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, collections::btree_map::IterMut};
 
 pub fn partition<T>(v: &mut [T], k: usize) -> usize
 where
@@ -17,9 +17,10 @@ where
     j
 }
 
-pub fn stable_partition<T>(v: &mut [T], pred: fn(&T) -> bool) -> Result<usize, String>
+pub fn stable_partition<T, F>(v: &mut [T], pred: &F) -> Result<usize, String>
 where
-    T: PartialOrd + Copy + Debug,
+    T: PartialOrd + Copy,
+    F: Fn(&T) -> bool,
 {
     let n = v.len();
     if n == 0 {
@@ -72,6 +73,44 @@ where
     let (v_left, v_right) = v.split_at_mut(q);
     quicksort(v_left);
     quicksort(&mut v_right[1..]);
+}
+
+pub fn stable_sort<T>(v: &mut [T])
+where
+    T: PartialOrd + Copy + Debug,
+{
+    let n = v.len();
+    if n == 0 || n == 1 {
+        return;
+    }
+    let mut buffer = Vec::<T>::with_capacity(n);
+    {
+        let (v_left, v_right) = v.split_at_mut(n / 2);
+        stable_sort(v_left);
+        stable_sort(v_right);
+
+        // merge
+        let mut i = 0;
+        let mut j = 0;
+        while i < v_left.len() && j < v_right.len() {
+            if v_left[i] <= v_right[j] {
+                buffer.push(v_left[i]);
+                i += 1;
+            } else {
+                buffer.push(v_right[j]);
+                j += 1;
+            }
+        }
+        while i < v_left.len() {
+            buffer.push(v_left[i]);
+            i += 1;
+        }
+        while j < v_right.len() {
+            buffer.push(v_right[j]);
+            j += 1;
+        }
+    }  // end of mutable borrow from v
+    v.copy_from_slice(&buffer[..]);    
 }
 
 pub fn reverse<T>(v: &mut [T]) {
@@ -307,7 +346,7 @@ mod tests {
             Pair(38, 9),
         ];
 
-        let q = stable_partition(&mut v, |&item| item.0 < 47).unwrap();
+        let q = stable_partition(&mut v, &|&item| item.0 < 47).unwrap();
 
         assert!(q == 6);
         // check ordering
@@ -323,6 +362,38 @@ mod tests {
         }
         for i in (q+1)..(v.len()) {
             assert!(v[i-1].1 <= v[i].1);
+        }
+    }
+
+    #[test]
+    fn test_stable_sort() {
+        let mut v: Vec<Pair> = vec![
+            Pair(25, 0),
+            Pair(2, 1),
+            Pair(48, 2),
+            Pair(10, 3),
+            Pair(83, 4),
+            Pair(29, 5),
+            Pair(46, 6),
+            Pair(48, 7),
+            Pair(81, 8),
+            Pair(38, 9),
+        ];
+
+        stable_sort(&mut v);
+
+        // check ordering
+        let mut lhs = v[0];
+        for i in 1..v.len() {
+            let rhs = v[i];
+            assert!(lhs <= rhs);
+            lhs = rhs;
+        }
+        // check stability (each sub-group should be strictly increasing in the second element of the pair)
+        for i in 1..v.len() {
+            if v[i-1] == v[i] {
+                assert!(v[i-1].1 < v[i].1);
+            }
         }
     }
 
