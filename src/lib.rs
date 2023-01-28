@@ -129,6 +129,10 @@ where
     v.copy_from_slice(&buffer[..]);
 }
 
+/// Sort elements in `v` preserving existing ordering for equal value elements
+/// 
+/// Uses merge_sort with O(N) extra storage (allocated once, up front), and
+/// insertion_sort for small tails.
 pub fn stable_sort<T>(v: &mut [T])
 where
     T: PartialOrd + Copy + Debug,
