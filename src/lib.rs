@@ -1,5 +1,7 @@
 use std::{fmt::Debug, collections::btree_map::IterMut};
 
+const INSERTION_SORT_LIMIT: usize = 15;
+
 pub fn partition<T>(v: &mut [T], k: usize) -> usize
 where
     T: PartialOrd + Copy,
@@ -66,7 +68,12 @@ fn quicksort<T>(v: &mut [T])
 where
     T: PartialOrd + Copy,
 {
-    if v.len() == 0 {
+    let n = v.len();
+    if n == 0 || n == 1 {
+        return;
+    }
+    if n < INSERTION_SORT_LIMIT {
+        insertion_sort(v);
         return;
     }
     let q = partition(v, v.len() / 2);
@@ -104,7 +111,7 @@ where
     if n == 0 || n == 1 {
         return;
     }
-    if n < 15 {
+    if n < INSERTION_SORT_LIMIT {
         insertion_sort(v);
         return;
     }
