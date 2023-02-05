@@ -64,83 +64,11 @@ where
     }
 }
 
-fn quicksort<T>(v: &mut [T])
-where
-    T: PartialOrd + Copy,
-{
-    let n = v.len();
-    if n == 0 || n == 1 {
-        return;
-    }
-    if n < INSERTION_SORT_LIMIT {
-        insertion_sort(v);
-        return;
-    }
-    let q = partition(v, v.len() / 2);
-    let (v_left, v_right) = v.split_at_mut(q);
-    quicksort(v_left);
-    quicksort(&mut v_right[1..]);
-}
-
 pub fn sort<T>(v: &mut [T])
 where
     T: PartialOrd + Copy,
 {
     quicksort(v);
-}
-
-fn insertion_sort<T>(v: &mut [T])
-where
-    T: PartialOrd + Copy
-{
-    let n = v.len();
-    for i in 0..n {
-        let mut j = i;
-        while j > 0 && v[j-1] > v[j] {
-            v.swap(j-1, j);
-            j -= 1;
-        }
-    }
-}
-
-fn merge_sort<T>(v: &mut [T], buffer: &mut Vec<T>)
-where
-    T: PartialOrd + Copy + Debug,
-{
-    let n = v.len();
-    if n == 0 || n == 1 {
-        return;
-    }
-    if n < INSERTION_SORT_LIMIT {
-        insertion_sort(v);
-        return;
-    }
-    let (v_left, v_right) = v.split_at_mut(n / 2);
-    merge_sort(v_left, buffer);
-    merge_sort(v_right, buffer);
-
-    // merge
-    buffer.clear();
-    let mut i: usize = 0;
-    let mut j: usize = 0;
-    while i < v_left.len() && j < v_right.len() {
-        if v_left[i] <= v_right[j] {
-            buffer.push(v_left[i]);
-            i += 1;
-        } else {
-            buffer.push(v_right[j]);
-            j += 1;
-        }
-    }
-    while i < v_left.len() {
-        buffer.push(v_left[i]);
-        i += 1;
-    }
-    while j < v_right.len() {
-        buffer.push(v_right[j]);
-        j += 1;
-    }
-    v.copy_from_slice(&buffer[..]);
 }
 
 /// Sort elements in `v` preserving existing ordering for equal value elements
@@ -182,38 +110,6 @@ pub fn rotate<T>(v: &mut [T], l: usize) -> Result<usize, String> {
     reverse(&mut v[l..]);
     reverse(v);
     Ok(n - l)
-}
-
-fn parent(i: usize) -> usize {
-    (i - 1) / 2
-}
-
-fn left(i: usize) -> usize {
-    2 * i + 1
-}
-
-fn right(i: usize) -> usize {
-    2 * i + 2
-}
-
-fn heapify<T>(v: &mut [T], i: usize)
-where
-    T: PartialOrd + Copy,
-{
-    let l = left(i);
-    let r = right(i);
-    let n = v.len();
-    let mut smallest = i;
-    if l < n && v[l] < v[i] {
-        smallest = l;
-    }
-    if r < n && v[r] < v[smallest] {
-        smallest = r;
-    }
-    if smallest != i {
-        v.swap(i, smallest);
-        heapify(v, smallest);
-    }
 }
 
 pub fn make_heap<T>(v: &mut [T])
@@ -282,6 +178,110 @@ where
         pop_heap(&mut tmp[0..n-i]);
         v[i] = tmp[n-i-1];
     }
+}
+
+fn heapify<T>(v: &mut [T], i: usize)
+where
+    T: PartialOrd + Copy,
+{
+    let l = left(i);
+    let r = right(i);
+    let n = v.len();
+    let mut smallest = i;
+    if l < n && v[l] < v[i] {
+        smallest = l;
+    }
+    if r < n && v[r] < v[smallest] {
+        smallest = r;
+    }
+    if smallest != i {
+        v.swap(i, smallest);
+        heapify(v, smallest);
+    }
+}
+
+fn parent(i: usize) -> usize {
+    (i - 1) / 2
+}
+
+fn left(i: usize) -> usize {
+    2 * i + 1
+}
+
+fn right(i: usize) -> usize {
+    2 * i + 2
+}
+
+fn insertion_sort<T>(v: &mut [T])
+where
+    T: PartialOrd + Copy
+{
+    let n = v.len();
+    for i in 0..n {
+        let mut j = i;
+        while j > 0 && v[j-1] > v[j] {
+            v.swap(j-1, j);
+            j -= 1;
+        }
+    }
+}
+
+fn quicksort<T>(v: &mut [T])
+where
+    T: PartialOrd + Copy,
+{
+    let n = v.len();
+    if n == 0 || n == 1 {
+        return;
+    }
+    if n < INSERTION_SORT_LIMIT {
+        insertion_sort(v);
+        return;
+    }
+    let q = partition(v, v.len() / 2);
+    let (v_left, v_right) = v.split_at_mut(q);
+    quicksort(v_left);
+    quicksort(&mut v_right[1..]);
+}
+
+fn merge_sort<T>(v: &mut [T], buffer: &mut Vec<T>)
+where
+    T: PartialOrd + Copy + Debug,
+{
+    let n = v.len();
+    if n == 0 || n == 1 {
+        return;
+    }
+    if n < INSERTION_SORT_LIMIT {
+        insertion_sort(v);
+        return;
+    }
+    let (v_left, v_right) = v.split_at_mut(n / 2);
+    merge_sort(v_left, buffer);
+    merge_sort(v_right, buffer);
+
+    // merge
+    buffer.clear();
+    let mut i: usize = 0;
+    let mut j: usize = 0;
+    while i < v_left.len() && j < v_right.len() {
+        if v_left[i] <= v_right[j] {
+            buffer.push(v_left[i]);
+            i += 1;
+        } else {
+            buffer.push(v_right[j]);
+            j += 1;
+        }
+    }
+    while i < v_left.len() {
+        buffer.push(v_left[i]);
+        i += 1;
+    }
+    while j < v_right.len() {
+        buffer.push(v_right[j]);
+        j += 1;
+    }
+    v.copy_from_slice(&buffer[..]);
 }
 
 #[cfg(test)]
