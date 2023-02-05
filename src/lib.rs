@@ -62,7 +62,7 @@ where
     }
 }
 
-pub fn quicksort<T>(v: &mut [T])
+fn quicksort<T>(v: &mut [T])
 where
     T: PartialOrd + Copy,
 {
@@ -73,6 +73,13 @@ where
     let (v_left, v_right) = v.split_at_mut(q);
     quicksort(v_left);
     quicksort(&mut v_right[1..]);
+}
+
+pub fn sort<T>(v: &mut [T])
+where
+    T: PartialOrd + Copy,
+{
+    quicksort(v);
 }
 
 fn insertion_sort<T>(v: &mut [T])
@@ -302,9 +309,9 @@ mod tests {
     }
 
     #[test]
-    fn test_quicksort() {
+    fn test_sort() {
         let mut v: Vec<i32> = vec![42, 76, 6, 33, 55, 97, 93, 30, 20, 56, 14, 39, 69, 30, 11];
-        quicksort(&mut v);
+        sort(&mut v);
         let mut lhs = v[0];
         for i in 1..v.len() {
             let rhs = v[i];
