@@ -180,6 +180,50 @@ where
     }
 }
 
+pub fn lower_bound<T>(v: & [T], value: T) -> usize
+where
+    T: PartialOrd + Copy,
+{
+    let mut n = v.len();
+    let mut start = 0;
+    let mut end = n;
+
+    while n > 0 {
+        let mid = start + n / 2;
+        if v[mid] < value {
+            start = mid + 1;
+        } else {
+            end = mid;
+        }
+        n = end - start;
+    }
+    return start;
+}
+
+pub fn unique<T>(v: &mut [T]) -> usize
+where
+    T: PartialEq + Copy,
+{
+    let n = v.len();
+    if n == 0 {
+        return n;
+    }
+
+    let mut i: usize = 1;
+    let mut j: usize = 0;
+    while i != n {
+        if v[j] != v[i] {
+            j += 1;
+            if j != i {
+                v[j] = v[i];
+            }
+        }
+        i += 1;
+    }
+    j += 1;
+    return j;
+}
+
 fn heapify<T>(v: &mut [T], i: usize)
 where
     T: PartialOrd + Copy,
@@ -493,5 +537,20 @@ mod tests {
             assert!(lhs <= rhs);
             lhs = rhs;
         }
+    }
+
+    #[test]
+    fn test_lower_bound() {
+        let v: Vec<i32> = vec![0, 1, 2, 3, 7, 9, 10, 11, 12, 14, 18];
+        let n = lower_bound(&v, 5);
+        assert!(n == 4);
+    }
+
+    #[test]
+    fn test_unique() {
+        let mut v: Vec<i32> = vec![0, 0, 1, 1, 1, 2, 2, 3, 3, 4, 5, 6, 6, 7];
+        let n = unique(&mut v);
+        v.resize(n, 0);
+        assert!(v == vec![0, 1, 2, 3, 4, 5, 6, 7]);
     }
 }
